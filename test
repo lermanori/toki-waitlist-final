@@ -1,0 +1,8 @@
+https://script.google.com/macros/s/AKfycbyzOTykkTTuZt6bCpx-z_t8X9FGr1rhLI0dXqc9TDSXPc6WhZVRA2lEL4Ikzql7jsHu/exec
+
+
+
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"country":"Israel","email":"test@example.com","phone":"123","location":"loc","reason":"r"}' \
+  "https://script.google.com/macros/s/AKfycbzRYM7mCj5cne4MLQ0U3mfVbYhRvp03DxUP02xBwef852hsNDKjrP1YDswC89SSAgVT/exec"

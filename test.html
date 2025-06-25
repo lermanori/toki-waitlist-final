@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge Function Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Supabase Edge Function Test</h1>
+        <p>Test the email signup edge function integration</p>
+
+        <div class="test-section">
+            <h3>📧 Single Email Test</h3>
+            <input type="email" id="testEmail" placeholder="Enter email to test" value="lermanori+test@gmail.com">
+            <button onclick="testSingleEmail()">Test Email</button>
+            <div id="singleResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 Automated Test Suite</h3>
+            <button onclick="runAutomatedTests()">Run All Tests</button>
+            <button onclick="clearResults()">Clear Results</button>
+            <div id="automatedResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Frontend Integration Test</h3>
+            <p>Simulate the complete frontend form submission flow</p>
+            <button onclick="testFrontendFlow()">Test Frontend Flow</button>
+            <div id="frontendResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const EDGE_FUNCTION_URL = 'https://qznrxhgzpjhbwjgaizhz.supabase.co/functions/v1/submit-signup';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6bnJ4aGd6cGpoYndqZ2Fpemh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODEzMDEsImV4cCI6MjA2NDk1NzMwMX0.-nyN4Ob6F2X3IDb1PmB2k5O8LJgKJHVNLVV4Bh2BL0E';
+
+        function logResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        async function testSingleEmail() {
+            const email = document.getElementById('testEmail').value;
+            if (!email) {
+                logResult('singleResult', 'Please enter an email address', 'error');
+                return;
+            }
+
+            logResult('singleResult', 'Testing...', 'info');
+
+            try {
+                const response = await fetch(EDGE_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({ email }),
+                });
+
+                const responseText = await response.text();
+                
+                const result = `Status: ${response.status}\nResponse: ${responseText}`;
+                logResult('singleResult', result, response.ok ? 'success' : 'error');
+            } catch (error) {
+                logResult('singleResult', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runAutomatedTests() {
+            const testCases = [
+                { name: 'Valid email', data: { email: 'lermanori+test@gmail.com' }, expectedStatus: 200 },
+                { name: 'Missing email', data: {}, expectedStatus: 400 },
+                { name: 'Empty email', data: { email: '' }, expectedStatus: 400 },
+                { name: 'Invalid email', data: { email: 'invalid-email' }, expectedStatus: 400 },
+            ];
+
+            let results = '🧪 Running Automated Tests\n\n';
+            let passedTests = 0;
+
+            for (const testCase of testCases) {
+                results += `📋 ${testCase.name}\n`;
+                results += `📤 Data: ${JSON.stringify(testCase.data)}\n`;
+                
+                try {
+                    const response = await fetch(EDGE_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        },
+                        body: JSON.stringify(testCase.data),
+                    });
+
+                    const responseText = await response.text();
+                    
+                    results += `📥 Status: ${response.status}\n`;
+                    results += `📥 Response: ${responseText}\n`;
+                    
+                    if (response.status === testCase.expectedStatus) {
+                        results += `✅ PASS\n`;
+                        passedTests++;
+                    } else {
+                        results += `❌ FAIL (expected ${testCase.expectedStatus})\n`;
+                    }
+                } catch (error) {
+                    results += `❌ ERROR: ${error.message}\n`;
+                }
+                
+                results += '---\n';
+            }
+
+            results += `📊 Results: ${passedTests}/${testCases.length} tests passed\n`;
+            
+            if (passedTests === testCases.length) {
+                results += '🎉 All tests passed!';
+                logResult('automatedResult', results, 'success');
+            } else {
+                results += '⚠️ Some tests failed.';
+                logResult('automatedResult', results, 'error');
+            }
+        }
+
+        async function testFrontendFlow() {
+            logResult('frontendResult', 'Testing frontend integration flow...', 'info');
+
+            const testData = {
+                email: 'lermanori+frontend@gmail.com',
+                phone: '+1234567890',
+                location: 'New York',
+                reason: 'Testing frontend integration',
+                country: 'United States'
+            };
+
+            let results = '🎯 Frontend Integration Test\n\n';
+            results += `📤 Test data: ${JSON.stringify(testData, null, 2)}\n\n`;
+
+            try {
+                // Simulate database insertion (normally done by Supabase client)
+                results += '📥 Simulating database insertion...\n';
+                
+                // Call edge function
+                results += '📥 Calling edge function...\n';
+                const response = await fetch(EDGE_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                    body: JSON.stringify({ email: testData.email }),
+                });
+
+                const responseText = await response.text();
+                
+                results += `📥 Edge function status: ${response.status}\n`;
+                results += `📥 Edge function response: ${responseText}\n`;
+                
+                if (response.status === 200) {
+                    results += '✅ Frontend integration test PASSED\n';
+                    results += '📧 Email should be sent to the user\n';
+                    logResult('frontendResult', results, 'success');
+                } else {
+                    results += '❌ Frontend integration test FAILED\n';
+                    logResult('frontendResult', results, 'error');
+                }
+            } catch (error) {
+                results += `❌ ERROR: ${error.message}\n`;
+                logResult('frontendResult', results, 'error');
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('singleResult').textContent = '';
+            document.getElementById('automatedResult').textContent = '';
+            document.getElementById('frontendResult').textContent = '';
+        }
+    </script>
+</body>
+</html> 
