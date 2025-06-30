@@ -97,8 +97,24 @@
             <button onclick="testFrontendFlow()">Test Frontend Flow</button>
             <div id="frontendResult" class="result"></div>
         </div>
+
+        <div class="test-section">
+            <h3>🗑️ Delete User by Email</h3>
+            <input type="email" id="deleteEmail" placeholder="Email to delete" value="lermanori@gmail.com">
+            <button onclick="deleteUserByEmail()">Delete User</button>
+            <div id="deleteResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📤 Export Signups Table</h3>
+            <button onclick="exportSignupsCSV()">Export as CSV</button>
+            <button onclick="exportSignupsExcel()">Export as Excel</button>
+            <div id="exportResult" class="result"></div>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         const EDGE_FUNCTION_URL = 'https://qznrxhgzpjhbwjgaizhz.supabase.co/functions/v1/submit-signup';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6bnJ4aGd6cGpoYndqZ2Fpemh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODEzMDEsImV4cCI6MjA2NDk1NzMwMX0.-nyN4Ob6F2X3IDb1PmB2k5O8LJgKJHVNLVV4Bh2BL0E';
@@ -243,6 +259,83 @@
             document.getElementById('singleResult').textContent = '';
             document.getElementById('automatedResult').textContent = '';
             document.getElementById('frontendResult').textContent = '';
+        }
+
+        // Supabase client setup
+        const supabaseUrl = 'https://qznrxhgzpjhbwjgaizhz.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6bnJ4aGd6cGpoYndqZ2Fpemh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzODEzMDEsImV4cCI6MjA2NDk1NzMwMX0.-nyN4Ob6F2X3IDb1PmB2k5O8LJgKJHVNLVV4Bh2BL0E';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        async function deleteUserByEmail() {
+            const email = document.getElementById('deleteEmail').value;
+            if (!email) {
+                logResult('deleteResult', 'Please enter an email address', 'error');
+                return;
+            }
+            logResult('deleteResult', 'Deleting...', 'info');
+            const { error } = await supabase.from('signups').delete().eq('email', email);
+            if (error) {
+                logResult('deleteResult', 'Error: ' + error.message, 'error');
+            } else {
+                logResult('deleteResult', `User with email ${email} deleted (if existed).`, 'success');
+            }
+        }
+
+        async function exportSignupsCSV() {
+            logResult('exportResult', 'Exporting...', 'info');
+            const { data, error } = await supabase.from('signups').select('*');
+            if (error) {
+                logResult('exportResult', 'Error: ' + error.message, 'error');
+                return;
+            }
+            if (!data || data.length === 0) {
+                logResult('exportResult', 'No data to export.', 'info');
+                return;
+            }
+            // Convert to CSV
+            const csvRows = [];
+            const headers = Object.keys(data[0]);
+            csvRows.push(headers.join(','));
+            for (const row of data) {
+                csvRows.push(headers.map(h => '"' + (row[h] ?? '') + '"').join(','));
+            }
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'signups.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            logResult('exportResult', 'CSV exported!', 'success');
+        }
+
+        async function exportSignupsExcel() {
+            logResult('exportResult', 'Exporting...', 'info');
+            const { data, error } = await supabase.from('signups').select('*');
+            if (error) {
+                logResult('exportResult', 'Error: ' + error.message, 'error');
+                return;
+            }
+            if (!data || data.length === 0) {
+                logResult('exportResult', 'No data to export.', 'info');
+                return;
+            }
+            // Convert to Excel
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Signups');
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'signups.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            logResult('exportResult', 'Excel exported!', 'success');
         }
     </script>
 </body>
