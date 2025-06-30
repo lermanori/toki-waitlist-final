@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.2//EN"
+  "http://www.w3.org/Graphics/SVG/1.2/DTD/svg12.dtd">
+<svg xmlns="http://www.w3.org/2000/svg"
+     version="1.2"
+     baseProfile="tiny"
+     width="100" height="100"
+     viewBox="0 0 100 100">
+  <title>Toki Logo</title>
+  <desc>Official BIMI-compliant SVG logo for Toki</desc>
+  <g>
+    <!-- Map pin shape -->
+    <path d="M50,2
+             C73,2 92,21 92,44
+             C92,69 50,98 50,98
+             C50,98 8,69 8,44
+             C8,21 27,2 50,2 Z"
+          fill="#000000"/>
+    <!-- T Letter in the center -->
+    <rect x="35" y="30" width="30" height="8" fill="#ffffff"/>
+    <rect x="46" y="30" width="8" height="30" fill="#ffffff"/>
+  </g>
+</svg>
